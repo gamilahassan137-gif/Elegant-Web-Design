@@ -1,28 +1,42 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
-const Badge = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { variant?: "default" | "secondary" | "destructive" | "outline" }>(
-  ({ className, variant = "default", ...props }, ref) => {
-    const variants = {
-      default: "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80",
-      secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-      destructive: "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
-      outline: "text-foreground",
-    }
-    
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-          variants[variant],
-          className
-        )}
-        {...props}
-      />
-    )
+const badgeVariants = cva(
+  "inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  {
+    variants: {
+      variant: {
+        default:
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+        secondary:
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive:
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        outline: "text-foreground border-border hover:bg-accent/50",
+        success:
+          "border-transparent bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+        warning:
+          "border-transparent bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20",
+        info: "border-transparent bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/20",
+        glow: "border-transparent bg-primary/10 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.25)]",
+        soft: "border-transparent bg-muted text-muted-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
   }
-)
-Badge.displayName = "Badge"
+);
 
-export { Badge }
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
+
+function Badge({ className, variant, ...props }: BadgeProps) {
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+  );
+}
+
+export { Badge, badgeVariants };
