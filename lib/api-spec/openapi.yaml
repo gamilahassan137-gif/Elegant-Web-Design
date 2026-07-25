@@ -3,20 +3,25 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Bookstore API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: books
+    description: Book operations
+  - name: categories
+    description: Category operations
+  - name: chat
+    description: Chatbot operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +29,128 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /books:
+    get:
+      operationId: listBooks
+      tags: [books]
+      summary: List all books with optional search/filter
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search by title or author
+        - in: query
+          name: categoryId
+          schema:
+            type: ["integer", "null"]
+          description: Filter by category ID
+        - in: query
+          name: minPrice
+          schema:
+            type: ["number", "null"]
+        - in: query
+          name: maxPrice
+          schema:
+            type: ["number", "null"]
+      responses:
+        "200":
+          description: List of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Book"
+
+  /books/featured:
+    get:
+      operationId: listFeaturedBooks
+      tags: [books]
+      summary: Get featured books
+      responses:
+        "200":
+          description: Featured books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Book"
+
+  /books/stats:
+    get:
+      operationId: getBooksStats
+      tags: [books]
+      summary: Get bookstore statistics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookStats"
+
+  /books/{id}:
+    get:
+      operationId: getBook
+      tags: [books]
+      summary: Get a single book
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Book details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /chat:
+    post:
+      operationId: sendChatMessage
+      tags: [chat]
+      summary: Send a message to the chatbot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatInput"
+      responses:
+        "200":
+          description: Chatbot reply
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatReply"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +161,99 @@ components:
       required:
         - status
 
+    Book:
+      type: object
+      required: [id, title, titleAr, author, authorAr, description, descriptionAr, price, coverImage, categoryId, categoryName, categoryNameAr, rating, reviewCount, inStock, featured]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        titleAr:
+          type: string
+        author:
+          type: string
+        authorAr:
+          type: string
+        description:
+          type: string
+        descriptionAr:
+          type: string
+        price:
+          type: number
+        coverImage:
+          type: string
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        categoryNameAr:
+          type: string
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        inStock:
+          type: boolean
+        featured:
+          type: boolean
+        pages:
+          type: ["integer", "null"]
+        publishedYear:
+          type: ["integer", "null"]
+        isbn:
+          type: ["string", "null"]
+
+    Category:
+      type: object
+      required: [id, name, nameAr, bookCount]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: string
+        bookCount:
+          type: integer
+
+    BookStats:
+      type: object
+      required: [totalBooks, totalCategories, featuredCount, avgPrice]
+      properties:
+        totalBooks:
+          type: integer
+        totalCategories:
+          type: integer
+        featuredCount:
+          type: integer
+        avgPrice:
+          type: number
+
+    ChatInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        language:
+          type: string
+          description: "en or ar"
+
+    ChatReply:
+      type: object
+      required: [reply]
+      properties:
+        reply:
+          type: string
+        suggestedBooks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Book"
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
